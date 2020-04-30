@@ -17,7 +17,8 @@
                :key="index"
                class="path-wrapper">
             <span class="path-link"
-                  :class="{disabled: index === currentPathArr.length - 1}">{{item}}</span>
+                  :class="{disabled: index === currentPathArr.length - 1}"
+                  @click="handlePathClick(item)">{{item}}</span>
             <span class="path-divider">/</span>
           </div>
         </div>
@@ -177,6 +178,9 @@ export default {
     hanldeForwardBtnClick () {
       this.currentPathArr.push(this.forwardArr.pop())
       this.getData()
+    },
+    handlePathClick (path) {
+      console.log(path)
     }
   }
 }
