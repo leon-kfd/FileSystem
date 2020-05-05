@@ -14,7 +14,7 @@
         </div>
         <div class="folder-path">
           <div v-for="(item,index) in currentPathArr"
-               :key="index"
+               :key="item + index"
                class="path-wrapper">
             <span class="path-link"
                   :class="{disabled: index === currentPathArr.length - 1}"
@@ -32,6 +32,8 @@
         <el-button icon="el-icon-upload"
                    type="success"
                    @click="uploaderDialog = true">上传</el-button>
+        <el-button type="warning"
+                   @click="handleCreateFolder">新建文件夹</el-button>
       </div>
     </div>
     <div class="table-box">
@@ -40,6 +42,19 @@
                       :border="false"
                       @row-dblclick="handleDbClick"
                       ref="table">
+        <template #fileName="scoped">
+          <div class="renaming-item"
+               :class="{'is-editing': scoped.row.isRenaming}">
+            <div class="text">{{scoped.row.fileName}}</div>
+            <div class="edit">
+              <el-input v-model="renamingPrefix"
+                        v-focus
+                        @blur="handleRenamingInputBlur(scoped.row)"
+                        style="min-width: 100px;max-width: 350px"></el-input>
+              <span class="suffix">{{renamingSuffix}}</span>
+            </div>
+          </div>
+        </template>
         <template #icon="scoped">
           <div class="icon-wrapper">
             <img :src="iconFormatter(scoped.row.fileName, scoped.row.isFolder)"
@@ -52,7 +67,7 @@
     <el-dialog title="上传"
                width="100%"
                :visible.sync="uploaderDialog">
-      <file-uploader></file-uploader>
+      <file-uploader :currentPath="conf.params.currentPath"></file-uploader>
     </el-dialog>
   </div>
 </template>
@@ -72,10 +87,15 @@ export default {
   components: {
     FileUploader
   },
+  directives: {
+    focus: {
+      update: el => el.querySelector('input, textarea').focus()
+    }
+  },
   data () {
     return {
       iconFormatter (fileName, isFolder) {
-        if (!fileName) return ''
+        if (!fileName) return typesMap.folder
         if (isFolder) return typesMap.folder
         const arr = fileName.split('.')
         if (arr.length > 1) {
@@ -94,7 +114,8 @@ export default {
           {
             label: 'File Name',
             prop: 'fileName',
-            align: 'left'
+            align: 'left',
+            slot: 'fileName'
           },
           {
             label: 'Modify',
@@ -105,7 +126,7 @@ export default {
             label: 'Size',
             prop: 'size',
             width: 120,
-            formatter: (row) => sizeFormatter(row.size)
+            formatter: (row) => row.isFolder ? '-' : sizeFormatter(row.size)
           }
         ],
         data: [],
@@ -123,11 +144,13 @@ export default {
               }
             },
             {
-              label: '重命名'
+              label: '重命名',
+              fn: (row) => this.rename(row)
             },
             {
               label: '删除',
-              style: 'color: #bb3342'
+              style: 'color: #bb3342',
+              fn: (row) => this.delete(row)
             }
           ]
         },
@@ -143,13 +166,15 @@ export default {
       currentPathArr: ['$Root'],
       forwardArr: [],
       searchStr: '',
-      uploaderDialog: false
+      uploaderDialog: false,
+      renamingPrefix: '',
+      renamingSuffix: ''
     }
   },
   watch: {
     currentPathArr: {
       handler (val) {
-        this.conf.params.currentPath = val.join('/').replace('$Root', '')
+        this.conf.params.currentPath = val.join('/')
       },
       immediate: true
     }
@@ -171,16 +196,89 @@ export default {
       this.currentPathArr.push(row.fileName)
       this.getData()
     },
+    rename (row) {
+      this.$set(row, 'isRenaming', true)
+      const arr = row.fileName.split('.')
+      const prefix = arr.length > 1 ? arr.slice(0, arr.length - 1).join('.') : arr[0]
+      const suffix = arr.length > 1 ? arr[arr.length - 1] : ''
+      this.renamingPrefix = prefix
+      this.renamingSuffix = !row.isFolder ? `.${suffix}` : ''
+    },
+    delete (row) {
+      this.$confirm('此操作会将文件移动到回收站，你可在一周内进行恢复操作，一周后将永久删除（空文件夹默认直接删除）', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        const pathPrefix = this.currentPathArr.join('/')
+        this.$post('/delete', {
+          target: pathPrefix + '/' + row.fileName,
+          isFolder: row.isFolder
+        }).then(data => {
+          this.$message.success('操作成功')
+          this.getData()
+        })
+      }).catch(() => { })
+    },
     hanldeBackBtnClick () {
-      this.forwardArr.push(this.currentPathArr.pop())
-      this.getData()
+      if (this.currentPathArr.length > 1) {
+        this.forwardArr.push(this.currentPathArr.pop())
+        this.getData()
+      }
     },
     hanldeForwardBtnClick () {
-      this.currentPathArr.push(this.forwardArr.pop())
-      this.getData()
+      if (this.forwardArr.length >= 1) {
+        this.currentPathArr.push(this.forwardArr.pop())
+        this.getData()
+      }
     },
     handlePathClick (path) {
-      console.log(path)
+      const index = this.currentPathArr.findIndex(item => item === path)
+      if (~index) {
+        this.currentPathArr = this.currentPathArr.slice(0, index + 1)
+        this.getData()
+      }
+    },
+    handleRenamingInputBlur (row) {
+      const pathPrefix = this.currentPathArr.join('/')
+      if (!row.isNewFolder) {
+        const newName = !row.isFolder ? `${this.renamingPrefix}${this.renamingSuffix}` : this.renamingPrefix
+        const hasChange = row.fileName !== newName
+        if (hasChange) {
+          this.$post('/rename', {
+            oldPath: pathPrefix + '/' + row.fileName,
+            newPath: pathPrefix + '/' + newName
+          }).then(data => {
+            this.$set(row, 'fileName', newName)
+            this.$message.success('操作成功')
+          })
+        }
+        this.$set(row, 'isRenaming', false)
+      } else {
+        this.$post('/createFolder', {
+          folderName: pathPrefix + '/' + this.renamingPrefix
+        }).then(data => {
+          this.$message.success('操作成功')
+        })
+        this.$set(row, 'isRenaming', false)
+        this.getData()
+      }
+    },
+    handleCreateFolder () {
+      this.renamingPrefix = ''
+      this.renamingSuffix = ''
+      this.conf.data.push({
+        fileName: '',
+        isFolder: true,
+        size: 0,
+        isNewFolder: true
+      })
+      this.$nextTick(() => {
+        const newName = '新建文件夹'
+        const count = this.conf.data.filter(item => item.fileName.includes(newName))
+        this.renamingPrefix = `${newName}${count.length > 0 ? count.length : ''}`
+        this.$set(this.conf.data[this.conf.data.length - 1], 'isRenaming', true)
+      })
     }
   }
 }
@@ -193,7 +291,6 @@ export default {
 }
 .header-box {
   .left-header {
-    padding: 0 5px;
     display: flex;
     align-items: center;
     margin-bottom: 10px;
@@ -245,6 +342,34 @@ export default {
         }
       }
     }
+  }
+}
+.renaming-item {
+  display: flex;
+  align-items: center;
+  .text {
+    display: block;
+  }
+  .edit {
+    display: none;
+  }
+  &.is-editing {
+    .text {
+      display: none;
+    }
+    .edit {
+      display: block;
+    }
+  }
+  .suffix {
+    margin-left: 5px;
+    font-weight: bold;
+  }
+}
+@media screen and (max-width: 1080px) {
+  .header-box {
+    padding-left: 10px;
+    padding-right: 10px;
   }
 }
 </style>

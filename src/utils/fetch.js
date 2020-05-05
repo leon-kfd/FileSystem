@@ -28,7 +28,7 @@ instance.interceptors.response.use((response) => {
         type: 'error',
         duration: 2000
       })
-      router.push('/login')
+      router.push('/')
     } else if (data.errMsg) {
       Message({
         showClose: true,
