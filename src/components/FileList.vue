@@ -34,6 +34,9 @@
                    @click="uploaderDialog = true">上传</el-button>
         <el-button type="warning"
                    @click="handleCreateFolder">新建文件夹</el-button>
+        <el-button type="danger"
+                   :disabled="selectedList.length === 0"
+                   @click="handleBatchDelete">批量删除{{selectedList.length > 0 ? `(${selectedList.length})` : ''}}</el-button>
       </div>
     </div>
     <div class="table-box">
@@ -41,6 +44,7 @@
                       :loading.sync="loading"
                       :border="false"
                       @row-dblclick="handleDbClick"
+                      @selection-change="handleSelectionChange"
                       ref="table">
         <template #fileName="scoped">
           <div class="renaming-item"
@@ -66,7 +70,8 @@
     </div>
     <el-dialog title="上传"
                width="100%"
-               :visible.sync="uploaderDialog">
+               :visible.sync="uploaderDialog"
+               @close="getData">
       <file-uploader :currentPath="conf.params.currentPath"></file-uploader>
     </el-dialog>
   </div>
@@ -107,6 +112,9 @@ export default {
       },
       conf: {
         row: [
+          {
+            type: 'selection'
+          },
           {
             slot: 'icon',
             width: 50
@@ -150,7 +158,7 @@ export default {
             {
               label: '删除',
               style: 'color: #bb3342',
-              fn: (row) => this.delete(row)
+              fn: (row) => this.delete([row])
             }
           ]
         },
@@ -168,7 +176,9 @@ export default {
       searchStr: '',
       uploaderDialog: false,
       renamingPrefix: '',
-      renamingSuffix: ''
+      renamingSuffix: '',
+      searchStoreList: [],
+      selectedList: []
     }
   },
   watch: {
@@ -177,6 +187,14 @@ export default {
         this.conf.params.currentPath = val.join('/')
       },
       immediate: true
+    },
+    searchStr (val) {
+      if (val) {
+        const ls = this.conf.data.filter(item => item.fileName.includes(val))
+        this.$set(this.conf, 'data', ls)
+      } else {
+        this.$set(this.conf, 'data', this.searchStoreList)
+      }
     }
   },
   created () {
@@ -186,15 +204,34 @@ export default {
     handleDbClick (row) {
       console.log(row)
     },
+    handleSelectionChange (selection) {
+      this.selectedList = selection
+    },
+    handleBatchDelete () {
+      this.delete(this.selectedList)
+    },
     getData () {
       this.$nextTick(() => {
-        this.$refs.table.fetch()
+        this.$refs.table.fetch().then(data => {
+          this.searchStoreList = data
+        })
       })
     },
     open (row) {
       this.forwardArr.length = 0
       this.currentPathArr.push(row.fileName)
       this.getData()
+    },
+    download (row) {
+      const targetPath = this.conf.params.currentPath + '/' + row.fileName
+      const realPath = targetPath.replace('$Root', this.$baseURL)
+      const a = document.createElement('a')
+      a.href = realPath
+      a.download = row.fileName
+      a.setAttribute('target', '_blank')
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
     },
     rename (row) {
       this.$set(row, 'isRenaming', true)
@@ -204,16 +241,21 @@ export default {
       this.renamingPrefix = prefix
       this.renamingSuffix = !row.isFolder ? `.${suffix}` : ''
     },
-    delete (row) {
+    delete (rows) {
+      const pathPrefix = this.currentPathArr.join('/')
+      const deleteList = rows.map(row => {
+        return {
+          target: pathPrefix + '/' + row.fileName,
+          isFolder: row.isFolder
+        }
+      })
       this.$confirm('此操作会将文件移动到回收站，你可在一周内进行恢复操作，一周后将永久删除（空文件夹默认直接删除）', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        const pathPrefix = this.currentPathArr.join('/')
         this.$post('/delete', {
-          target: pathPrefix + '/' + row.fileName,
-          isFolder: row.isFolder
+          deleteList
         }).then(data => {
           this.$message.success('操作成功')
           this.getData()
@@ -376,7 +418,7 @@ export default {
 <style lang="scss">
 .file-list {
   .el-dialog {
-    max-width: 680px;
+    max-width: 768px;
   }
 }
 </style>

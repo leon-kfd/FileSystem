@@ -20,6 +20,7 @@ const typesMap = {
   png: iconsMap.jpg,
   jpge: iconsMap.jpg,
   svg: iconsMap.jpg,
+  jpe: iconsMap.jpg,
   mp3: iconsMap.mp3,
   mp4: iconsMap.video,
   avi: iconsMap.video,
