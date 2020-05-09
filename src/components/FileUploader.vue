@@ -74,7 +74,6 @@ export default {
     },
     computeMD5 (file) {
       const fileReader = new FileReader()
-      const time = new Date().getTime()
       const blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice
       let currentChunk = 0
       const chunkSize = CHUNK_SIZE
@@ -96,7 +95,6 @@ export default {
         } else {
           const md5 = spark.end()
           file.uniqueIdentifier = md5
-          console.log(`MD5计算完毕：${file.name} \nMD5：${md5} \n分片：${chunks} 大小:${file.size} 用时：${new Date().getTime() - time} ms`)
           file.resume()
           this.destoryMD5Element(file)
           document.querySelector(`.uploader-list .file-${file.id} .uploader-file-actions`).style.display = 'block'

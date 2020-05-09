@@ -74,12 +74,28 @@
                @close="getData">
       <file-uploader :currentPath="conf.params.currentPath"></file-uploader>
     </el-dialog>
+    <el-dialog title="移动"
+               width="500px"
+               :visible.sync="moveDialog">
+      <folder-tree @selectedNode="setMoveTo"></folder-tree>
+      <div slot="footer"
+           class="dialog-footer clear">
+        <div class="folder-selected-box fl">
+          <span class="label">目标位置</span>
+          <span class="content">{{moveTo}}</span>
+        </div>
+        <el-button @click="moveDialog = false">取消</el-button>
+        <el-button type="primary"
+                   @click="handleMoveSubmit">确定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import typesMap from '@/utils/file-icon'
 import FileUploader from '@/components/FileUploader'
+import FolderTree from '@/components/FolderTree'
 const sizeFormatter = (size) => {
   return size < 1024 * 1024
     ? `${parseFloat((size / 1024).toFixed(1))} KB`
@@ -90,7 +106,8 @@ const sizeFormatter = (size) => {
 export default {
   name: 'FileList',
   components: {
-    FileUploader
+    FileUploader,
+    FolderTree
   },
   directives: {
     focus: {
@@ -152,6 +169,10 @@ export default {
               }
             },
             {
+              label: '移动',
+              fn: (row) => this.showMove(row)
+            },
+            {
               label: '重命名',
               fn: (row) => this.rename(row)
             },
@@ -175,6 +196,9 @@ export default {
       forwardArr: [],
       searchStr: '',
       uploaderDialog: false,
+      moveDialog: false,
+      moveFrom: [],
+      moveTo: '',
       renamingPrefix: '',
       renamingSuffix: '',
       searchStoreList: [],
@@ -233,6 +257,12 @@ export default {
       a.click()
       document.body.removeChild(a)
     },
+    showMove (row) {
+      const targetPath = this.conf.params.currentPath + '/' + row.fileName
+      this.moveDialog = true
+      this.moveFrom = [targetPath]
+      this.moveTo = ''
+    },
     rename (row) {
       this.$set(row, 'isRenaming', true)
       const arr = row.fileName.split('.')
@@ -261,6 +291,9 @@ export default {
           this.getData()
         })
       }).catch(() => { })
+    },
+    setMoveTo (val) {
+      this.moveTo = val
     },
     hanldeBackBtnClick () {
       if (this.currentPathArr.length > 1) {
@@ -321,6 +354,27 @@ export default {
         this.renamingPrefix = `${newName}${count.length > 0 ? count.length : ''}`
         this.$set(this.conf.data[this.conf.data.length - 1], 'isRenaming', true)
       })
+    },
+    handleMoveSubmit () {
+      if (!this.moveTo) {
+        this.$message.warning('请选择目标位置')
+        return
+      }
+      this.$confirm(`是否确定将所需文件或文件夹移动至${this.moveTo}?`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$post('move', {
+          moveFrom: this.moveFrom,
+          moveTo: this.moveTo
+        }).then(data => {
+          this.$message.success('操作成功')
+          this.getData()
+        }).finally(() => {
+          this.moveDialog = false
+        })
+      }).catch(() => { })
     }
   }
 }
@@ -405,6 +459,19 @@ export default {
   }
   .suffix {
     margin-left: 5px;
+    font-weight: bold;
+  }
+}
+.folder-selected-box {
+  line-height: 32px;
+  .label {
+    font-size: 14px;
+    color: #778;
+  }
+  .content {
+    margin-left: 5px;
+    font-size: 15px;
+    color: #363636;
     font-weight: bold;
   }
 }
