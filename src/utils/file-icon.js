@@ -1,4 +1,4 @@
-const icons = ['folder', 'word', 'ppt', 'excel', 'pdf', 'txt', 'zip', 'psd', 'jpg', 'mp3', 'video', 'html', 'white']
+const icons = ['folder', 'word', 'ppt', 'excel', 'pdf', 'txt', 'zip', 'psd', 'jpg', 'mp3', 'video', 'html', 'white', 'exe']
 const iconsMap = {}
 icons.map(item => {
   iconsMap[item] = require(`@/assets/file-icon/${item}.svg`)
@@ -29,6 +29,7 @@ const typesMap = {
   md: iconsMap.html,
   js: iconsMap.html,
   css: iconsMap.html,
+  exe: iconsMap.exe,
   unknown: iconsMap.white
 }
 export default typesMap

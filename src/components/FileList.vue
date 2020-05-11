@@ -61,6 +61,7 @@
               <el-input v-model="renamingPrefix"
                         v-focus
                         @blur="handleRenamingInputBlur(scoped.row)"
+                        @keyup.native.enter="handleRenamingInputBlur(scoped.row)"
                         style="min-width: 100px;max-width: 350px"></el-input>
               <span class="suffix">{{renamingSuffix}}</span>
             </div>
@@ -217,7 +218,8 @@ export default {
       renamingPrefix: '',
       renamingSuffix: '',
       searchStoreList: [],
-      selectedList: []
+      selectedList: [],
+      isRenaming: false
     }
   },
   watch: {
@@ -287,6 +289,7 @@ export default {
     },
     rename (row) {
       this.$set(row, 'isRenaming', true)
+      this.isRenaming = true
       const arr = row.fileName.split('.')
       const prefix = arr.length > 1 ? arr.slice(0, arr.length - 1).join('.') : arr[0]
       const suffix = arr.length > 1 ? arr[arr.length - 1] : ''
@@ -337,28 +340,31 @@ export default {
       }
     },
     handleRenamingInputBlur (row) {
-      const pathPrefix = this.currentPathArr.join('/')
-      if (!row.isNewFolder) {
-        const newName = !row.isFolder ? `${this.renamingPrefix}${this.renamingSuffix}` : this.renamingPrefix
-        const hasChange = row.fileName !== newName
-        if (hasChange) {
-          this.$post('/rename', {
-            oldPath: pathPrefix + '/' + row.fileName,
-            newPath: pathPrefix + '/' + newName
+      if (this.isRenaming) {
+        this.isRenaming = false
+        const pathPrefix = this.currentPathArr.join('/')
+        if (!row.isNewFolder) {
+          const newName = !row.isFolder ? `${this.renamingPrefix}${this.renamingSuffix}` : this.renamingPrefix
+          const hasChange = row.fileName !== newName
+          if (hasChange) {
+            this.$post('/rename', {
+              oldPath: pathPrefix + '/' + row.fileName,
+              newPath: pathPrefix + '/' + newName
+            }).then(data => {
+              this.$set(row, 'fileName', newName)
+              this.$message.success('操作成功')
+            })
+          }
+          this.$set(row, 'isRenaming', false)
+        } else {
+          this.$post('/createFolder', {
+            folderName: pathPrefix + '/' + this.renamingPrefix
           }).then(data => {
-            this.$set(row, 'fileName', newName)
             this.$message.success('操作成功')
           })
+          this.$set(row, 'isRenaming', false)
+          this.getData()
         }
-        this.$set(row, 'isRenaming', false)
-      } else {
-        this.$post('/createFolder', {
-          folderName: pathPrefix + '/' + this.renamingPrefix
-        }).then(data => {
-          this.$message.success('操作成功')
-        })
-        this.$set(row, 'isRenaming', false)
-        this.getData()
       }
     },
     handleCreateFolder () {
@@ -375,6 +381,7 @@ export default {
         const count = this.conf.data.filter(item => item.fileName.includes(newName))
         this.renamingPrefix = `${newName}${count.length > 0 ? count.length : ''}`
         this.$set(this.conf.data[this.conf.data.length - 1], 'isRenaming', true)
+        this.isRenaming = true
       })
     },
     handleMoveSubmit () {

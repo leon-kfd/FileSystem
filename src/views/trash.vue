@@ -6,7 +6,8 @@
           <div class="left-header fl">
             <div class="operation-icon">
               <i class="el-icon-back"
-                 title="返回主页"></i>
+                 title="返回主页"
+                 @click="$router.go(-1)"></i>
               <i class="el-icon-refresh-right"
                  title="刷新"
                  @click="getData"></i>
@@ -106,7 +107,7 @@ export default {
           static: true
         },
         formatRespone: (data) => data.sort((a, b) => {
-          return new Date(a.updatedTime) - new Date(b.updatedTime) > 0
+          return new Date(b.updatedTime) - new Date(a.updatedTime)
         })
       }
     }
@@ -119,6 +120,20 @@ export default {
       this.$nextTick(() => {
         this.$refs.table.fetch()
       })
+    },
+    handleRestore (rows) {
+      this.$confirm('是否将所需的文件还原?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$post('/restore', {
+          restoreList: rows
+        }).then(data => {
+          this.$message.success('操作成功')
+          this.getData()
+        })
+      }).catch(() => { })
     }
   }
 }
