@@ -12,7 +12,12 @@ const routes = [
   {
     path: '/main',
     name: 'Home',
-    component: () => import('@/views/Home')
+    component: () => import('@/views/home')
+  },
+  {
+    path: '/trash',
+    name: 'Trash',
+    component: () => import('@/views/trash')
   }
 ]
 

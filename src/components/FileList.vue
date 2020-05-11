@@ -4,12 +4,15 @@
       <div class="left-header fl">
         <div class="operation-icon">
           <i class="el-icon-back"
+             title="后退"
              :class="{disabled: currentPathArr.length <= 1}"
              @click="hanldeBackBtnClick"></i>
           <i class="el-icon-right"
+             title="前进"
              :class="{disabled: forwardArr.length < 1}"
              @click="hanldeForwardBtnClick"></i>
           <i class="el-icon-refresh-right"
+             title="刷新"
              @click="getData"></i>
         </div>
         <div class="folder-path">
@@ -34,9 +37,6 @@
                    @click="uploaderDialog = true">上传</el-button>
         <el-button type="warning"
                    @click="handleCreateFolder">新建文件夹</el-button>
-        <el-button type="danger"
-                   :disabled="selectedList.length === 0"
-                   @click="handleBatchDelete">批量删除{{selectedList.length > 0 ? `(${selectedList.length})` : ''}}</el-button>
       </div>
     </div>
     <div class="table-box">
@@ -46,6 +46,13 @@
                       @row-dblclick="handleDbClick"
                       @selection-change="handleSelectionChange"
                       ref="table">
+        <template #icon="scoped">
+          <div class="icon-wrapper">
+            <img :src="iconFormatter(scoped.row.fileName, scoped.row.isFolder)"
+                 alt="icon"
+                 style="width: 24px;height: auto">
+          </div>
+        </template>
         <template #fileName="scoped">
           <div class="renaming-item"
                :class="{'is-editing': scoped.row.isRenaming}">
@@ -59,11 +66,14 @@
             </div>
           </div>
         </template>
-        <template #icon="scoped">
-          <div class="icon-wrapper">
-            <img :src="iconFormatter(scoped.row.fileName, scoped.row.isFolder)"
-                 alt="icon"
-                 style="width: 24px;height: auto">
+        <template #footerLeft>
+          <div class="footer-btn-box">
+            <el-button type="primary"
+                       :disabled="selectedList.length === 0"
+                       @click="handleBatchMove">批量移动{{selectedList.length > 0 ? `(${selectedList.length})` : ''}}</el-button>
+            <el-button type="danger"
+                       :disabled="selectedList.length === 0"
+                       @click="handleBatchDelete">批量删除{{selectedList.length > 0 ? `(${selectedList.length})` : ''}}</el-button>
           </div>
         </template>
       </standard-table>
@@ -137,18 +147,18 @@ export default {
             width: 50
           },
           {
-            label: 'File Name',
+            label: '名称',
             prop: 'fileName',
             align: 'left',
             slot: 'fileName'
           },
           {
-            label: 'Modify',
+            label: '修改日期',
             prop: 'updatedTime',
             width: 150
           },
           {
-            label: 'Size',
+            label: '大小',
             prop: 'size',
             width: 120,
             formatter: (row) => row.isFolder ? '-' : sizeFormatter(row.size)
@@ -189,7 +199,12 @@ export default {
           currentPath: ''
         },
         responseItems: '',
-        formatRespone: (data) => data.sort((a, b) => ~~b.isFolder - ~~a.isFolder)
+        pagination: {
+          static: true
+        },
+        formatRespone: (data) => data.sort((a, b) => {
+          return ~~b.isFolder - ~~a.isFolder
+        })
       },
       loading: false,
       currentPathArr: ['$Root'],
@@ -226,13 +241,20 @@ export default {
   },
   methods: {
     handleDbClick (row) {
-      console.log(row)
+      if (row.isFolder) {
+        this.open(row)
+      }
     },
     handleSelectionChange (selection) {
       this.selectedList = selection
     },
     handleBatchDelete () {
       this.delete(this.selectedList)
+    },
+    handleBatchMove () {
+      this.moveDialog = true
+      this.moveFrom = this.selectedList.map(item => this.conf.params.currentPath + '/' + item.fileName)
+      this.moveTo = ''
     },
     getData () {
       this.$nextTick(() => {
@@ -443,6 +465,7 @@ export default {
 .renaming-item {
   display: flex;
   align-items: center;
+  user-select: none;
   .text {
     display: block;
   }
@@ -474,6 +497,9 @@ export default {
     color: #363636;
     font-weight: bold;
   }
+}
+.footer-btn-box {
+  padding-left: 10px;
 }
 @media screen and (max-width: 1080px) {
   .header-box {

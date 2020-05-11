@@ -217,17 +217,22 @@
                :row="conf.row"
                :operation="conf.operation"
                :cardSetting="conf.cardSetting"></card-mode>
-    <div class="__pagination-box"
-         v-if="conf.pagination"
-         :style="{'text-align': (conf.pagination && conf.pagination.align) || 'right'}">
-      <el-pagination @size-change="handleSizeChange"
-                     @current-change="handleCurrentChange"
-                     :current-page="currentPage"
-                     :page-size="currentPageSize"
-                     :page-sizes="(conf.pagination && conf.pagination.pageSizes) || this.$STANDARD.pageSizes"
-                     :layout="(conf.pagination && conf.pagination.layout) || this.$STANDARD.pageLayout"
-                     :total="total">
-      </el-pagination>
+    <div class="__footer-box">
+      <div class="__footer-btn-box">
+        <slot name="footerLeft"></slot>
+      </div>
+      <div class="__pagination-box"
+           v-if="conf.pagination"
+           :style="{'text-align': (conf.pagination && conf.pagination.align) || 'right'}">
+        <el-pagination @size-change="handleSizeChange"
+                       @current-change="handleCurrentChange"
+                       :current-page="currentPage"
+                       :page-size="currentPageSize"
+                       :page-sizes="(conf.pagination && conf.pagination.pageSizes) || this.$STANDARD.pageSizes"
+                       :layout="(conf.pagination && conf.pagination.layout) || this.$STANDARD.pageLayout"
+                       :total="total">
+        </el-pagination>
+      </div>
     </div>
   </div>
 </template>
@@ -451,8 +456,20 @@ export default {
 }
 </script>
 <style scoped>
-.__pagination-box {
+.__footer-box {
   margin-top: 15px;
+  zoom: 1;
+}
+.__footer-box:after {
+  content: '';
+  display: table;
+  clear: both;
+}
+.__footer-btn-box {
+  float: left;
+}
+.__pagination-box {
+  float: right;
 }
 .__table-box {
   position: relative;

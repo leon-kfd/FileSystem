@@ -3,6 +3,12 @@
     <div class="wrapper">
       <file-list></file-list>
     </div>
+    <div class="trash-box"
+         @click="$router.push('/trash')">
+      <img :src="trashImg"
+           alt="回收站">
+      <p class="text">回收站</p>
+    </div>
   </div>
 </template>
 
@@ -12,6 +18,11 @@ export default {
   name: 'Home',
   components: {
     FileList
+  },
+  data () {
+    return {
+      trashImg: require('@/assets/trash.svg')
+    }
   }
 }
 </script>
@@ -28,6 +39,28 @@ export default {
   .wrapper {
     margin: 0 auto;
     padding: 20px 0 30px;
+  }
+}
+.trash-box {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  cursor: pointer;
+  z-index: 9999;
+  img {
+    width: 42px;
+    height: 42px;
+    filter: drop-shadow(0 0 10px #667);
+  }
+  .text {
+    padding: 5px 0;
+    font-size: 14px;
+    color: #667;
+  }
+  &:hover {
+    img {
+      filter: drop-shadow(0 0 10px #262626);
+    }
   }
 }
 </style>
