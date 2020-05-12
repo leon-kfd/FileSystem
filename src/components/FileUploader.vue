@@ -45,7 +45,10 @@ export default {
   data () {
     return {
       options: {
-        target: (instance, chunk, isTest) => isTest ? '/api/storage/testUpload' : '/api/storage/upload',
+        target: (instance, chunk, isTest) => {
+          const baseURL = process.env.NODE_ENV === 'production' ? '/storage' : '/api/storage'
+          return isTest ? `${baseURL}/testUpload` : `${baseURL}/upload`
+        },
         query: () => {
           return {
             targetPath: this.currentPath
