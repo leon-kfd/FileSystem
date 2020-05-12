@@ -11,7 +11,7 @@ module.exports = {
     }
   },
   productionSourceMap: false,
-  publicPath: '/storage',
+  publicPath: '/cloud',
   configureWebpack: config => {
     config.externals = {
       vue: 'Vue',
