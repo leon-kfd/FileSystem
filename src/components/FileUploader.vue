@@ -167,9 +167,6 @@ export default {
 </style>
 <style lang="scss">
 .file-list {
-  .el-dialog__body {
-    padding: 10px 20px 20px;
-  }
   .md5-status {
     position: absolute;
     top: 0;

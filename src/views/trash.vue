@@ -19,12 +19,23 @@
           <standard-table v-model="conf"
                           :loading.sync="loading"
                           :border="false"
+                          @selection-change="handleSelectionChange"
                           ref="table">
             <template #icon="scoped">
               <div class="icon-wrapper">
                 <img :src="iconFormatter(scoped.row.fileName, scoped.row.isFolder)"
                      alt="icon"
                      style="width: 24px;height: auto">
+              </div>
+            </template>
+            <template #footerLeft>
+              <div class="footer-btn-box">
+                <el-button type="primary"
+                           :disabled="selectedList.length === 0"
+                           @click="handleBatchRestore">批量还原{{selectedList.length > 0 ? `(${selectedList.length})` : ''}}</el-button>
+                <el-button type="danger"
+                           :disabled="selectedList.length === 0"
+                           @click="handleBatchDelete">批量永久删除{{selectedList.length > 0 ? `(${selectedList.length})` : ''}}</el-button>
               </div>
             </template>
           </standard-table>
@@ -76,12 +87,6 @@ export default {
           {
             label: '修改时间',
             prop: 'updatedTime'
-            // formatter: (row) => {
-            //   const arr = row.fileName.split('.')
-            //   const fileName = arr.length > 1 ? arr.slice(0, arr.length - 1).join('.') : arr[0]
-            //   const a = fileName.substr(-14)
-            //   return row.updatedTime || `${a.substr(0, 4)}-${a.substr(4, 2)}-${a.substr(6, 2)} ${a.substr(8, 2)}:${a.substr(10, 2)}:${a.substr(12, 2)}`
-            // }
           }
         ],
         data: [],
@@ -96,7 +101,7 @@ export default {
             {
               label: '永久删除',
               style: 'color: #bb3342',
-              fn: (row) => this.delete([row])
+              fn: (row) => this.handleDelete([row])
             }
           ]
         },
@@ -109,7 +114,8 @@ export default {
         formatRespone: (data) => data.sort((a, b) => {
           return new Date(b.updatedTime) - new Date(a.updatedTime)
         })
-      }
+      },
+      selectedList: []
     }
   },
   mounted () {
@@ -121,8 +127,9 @@ export default {
         this.$refs.table.fetch()
       })
     },
-    handleRestore (rows) {
-      this.$confirm('是否将所需的文件还原?', '提示', {
+    handleRestore (rows, showIgnoreTips = false) {
+      const text = showIgnoreTips ? '所选记录中含有不可还原的文件或文件夹,会默认忽略,是否继续?' : '是否将所选的文件还原?'
+      this.$confirm(text, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -134,6 +141,34 @@ export default {
           this.getData()
         })
       }).catch(() => { })
+    },
+    handleDelete (rows) {
+      this.$confirm('该操作会永久删除所选文件或文件夹，不可恢复，是否继续', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'error'
+      }).then(() => {
+        this.$post('/permanentlyDelete', {
+          deleteList: rows
+        }).then(data => {
+          this.$message.success('操作成功')
+          this.getData()
+        })
+      }).catch(() => { })
+    },
+    handleSelectionChange (selection) {
+      this.selectedList = selection
+    },
+    handleBatchRestore () {
+      const isAllCanRestore = this.selectedList.every(item => item.fromPath)
+      if (isAllCanRestore) {
+        this.handleRestore(this.selectedList)
+      } else {
+        this.handleRestore(this.selectedList.filter(item => item.fromPath), true)
+      }
+    },
+    handleBatchDelete () {
+      this.handleDelete(this.selectedList)
     }
   }
 }

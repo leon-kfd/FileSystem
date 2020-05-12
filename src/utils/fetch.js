@@ -39,6 +39,14 @@ instance.interceptors.response.use((response) => {
     }
     return Promise.reject(response)
   }
+}, (err) => {
+  Message({
+    showClose: true,
+    message: '网络错误',
+    type: 'error',
+    duration: 2000
+  })
+  return Promise.reject(err)
 })
 
 export { baseURL }

@@ -81,14 +81,23 @@
     </div>
     <el-dialog title="上传"
                width="100%"
+               class="uploader-dialog"
                :visible.sync="uploaderDialog"
                @close="getData">
       <file-uploader :currentPath="conf.params.currentPath"></file-uploader>
     </el-dialog>
     <el-dialog title="移动"
                width="500px"
+               class="move-dialog"
                :visible.sync="moveDialog">
-      <folder-tree @selectedNode="setMoveTo"></folder-tree>
+      <folder-tree v-if="moveDialog"
+                   @selectedNode="setMoveTo"></folder-tree>
+      <div class="move-type-box">
+        <el-radio-group v-model="moveType">
+          <el-radio :label="0">移动</el-radio>
+          <el-radio :label="1">复制</el-radio>
+        </el-radio-group>
+      </div>
       <div slot="footer"
            class="dialog-footer clear">
         <div class="folder-selected-box fl">
@@ -215,6 +224,7 @@ export default {
       moveDialog: false,
       moveFrom: [],
       moveTo: '',
+      moveType: 0,
       renamingPrefix: '',
       renamingSuffix: '',
       searchStoreList: [],
@@ -257,6 +267,7 @@ export default {
       this.moveDialog = true
       this.moveFrom = this.selectedList.map(item => this.conf.params.currentPath + '/' + item.fileName)
       this.moveTo = ''
+      this.moveType = 0
     },
     getData () {
       this.$nextTick(() => {
@@ -396,7 +407,8 @@ export default {
       }).then(() => {
         this.$post('move', {
           moveFrom: this.moveFrom,
-          moveTo: this.moveTo
+          moveTo: this.moveTo,
+          moveType: this.moveType
         }).then(data => {
           this.$message.success('操作成功')
           this.getData()
@@ -514,11 +526,24 @@ export default {
     padding-right: 10px;
   }
 }
+.move-type-box {
+  margin-top: 10px;
+}
 </style>
 <style lang="scss">
 .file-list {
   .el-dialog {
     max-width: 768px;
+  }
+}
+.uploader-dialog {
+  .el-dialog__body {
+    padding: 10px 20px 20px;
+  }
+}
+.move-dialog {
+  .el-dialog__body {
+    padding: 10px 20px 0;
   }
 }
 </style>
