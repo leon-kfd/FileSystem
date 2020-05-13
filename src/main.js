@@ -5,7 +5,7 @@ import store from './store'
 import '@/assets/base.css'
 import ElementUI from 'element-ui'
 // import 'element-ui/lib/theme-chalk/index.css'
-import { StandardTable } from 'howdyjs'
+import StandardTable from 'howdyjs/lib/standard-table'
 import VueSimpleUplader from 'vue-simple-uploader'
 import instance, { baseURL } from '@/utils/fetch'
 Vue.use(ElementUI, {
