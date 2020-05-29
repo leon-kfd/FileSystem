@@ -77,6 +77,10 @@ export default {
     },
     handleLogin () {
       const { username, password, captcha } = this.loginForm
+      if (!username || !password || !captcha) {
+        this.$message.warning('请填写必要信息')
+        return
+      }
       this.$post('/login', {
         username, password: window.btoa(password), captcha
       }).then(data => {
