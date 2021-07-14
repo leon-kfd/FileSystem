@@ -12,7 +12,7 @@ const routes = [
   {
     path: '/main',
     name: 'Home',
-    component: () => import('@/views/home')
+    component: () => import('@/views/Home')
   },
   {
     path: '/trash',

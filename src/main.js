@@ -20,7 +20,7 @@ Vue.prototype.$baseURL = baseURL
 Vue.prototype.$post = (url, data, options) => instance.post(url, data, options)
 Vue.prototype.$get = (url, params, options) => instance.get(url, { params, ...options })
 
-Vue.config.productionTip = false
+// Vue.config.productionTip = false
 
 new Vue({
   router,
