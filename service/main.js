@@ -3,7 +3,7 @@ const KoaBody = require('koa-body')
 const KoaSession = require('koa-session')
 const responseUtil = require('./middleware/response')
 
-const UserRouter = require('./router/user')
+const router = require('./router')
 
 const app = new Koa()
 app.keys = ['SimpleFileSystem']
@@ -16,7 +16,7 @@ app.use(KoaBody())
 
 app.use(responseUtil)
 
-app.use(UserRouter.routes()).use(UserRouter.allowedMethods())
+app.use(router.routes()).use(router.allowedMethods())
 
 app.listen(5000, () => {
   initMysql()
