@@ -1,7 +1,9 @@
 const Koa = require('koa')
 const KoaBody = require('koa-body')
 const KoaSession = require('koa-session')
-const responseUtil = require('./middleware/response')
+
+const responseMiddleware = require('./middleware/response')
+const queryMiddleware = require('./middleware/query')
 
 const router = require('./router')
 
@@ -14,7 +16,8 @@ app.use(KoaSession({
 }, app))
 app.use(KoaBody())
 
-app.use(responseUtil)
+app.use(responseMiddleware)
+app.use(queryMiddleware)
 
 app.use(router.routes()).use(router.allowedMethods())
 

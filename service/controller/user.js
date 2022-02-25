@@ -1,5 +1,10 @@
+// ###
+// 用户信息
+// ###
+
 const SvgCaptcha = require('svg-captcha');
 
+// 验证码
 exports.captcha = async (ctx) => {
   const c = SvgCaptcha.create({
     background: '#f5f5f7'
@@ -8,6 +13,7 @@ exports.captcha = async (ctx) => {
   ctx.body = new Buffer.from(c.data)
 }
 
+// 登录
 exports.login = async (ctx) => {
   const { username, password, captcha } = ctx.request.body
   if (!username || !password || !captcha) {
@@ -21,7 +27,7 @@ exports.login = async (ctx) => {
   try {
     const base64Decode = new Buffer.from(password, 'base64')
     const genPwd = base64Decode.toString()
-    const result = await query(`select * from storage_user where username = ? and password = ?`, [username, genPwd])
+    const result = await ctx.query(`select * from storage_user where username = ? and password = ?`, [username, genPwd])
     if (!result || result.length === 0) {
       ctx.r.error(312, '账号或密码错误')
       return
@@ -33,6 +39,7 @@ exports.login = async (ctx) => {
   }
 }
 
+// 注销
 exports.logout = async (ctx) => {
   ctx.session.user = null
   ctx.r.success()
