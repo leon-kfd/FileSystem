@@ -27,4 +27,5 @@ app.listen(5000, () => {
 
 function initMysql() {
   // 初始化Mysql, 若表不存在创建表
+  // 当前请手动执行`init.sql`
 }
