@@ -3,7 +3,7 @@
 // ###
 
 const fs = require('fs')
-const { storageRootPath, storageTrashPath } = require('../../config/config')
+const { storageRootPath, storageTrashPath } = require('../config/config')
 const { deleteFolder } = require('../utils/helper')
 
 // 获取回收站数据列表
@@ -13,9 +13,9 @@ exports.getTrashList = async ctx => {
   // TODO: 配合定时器定时清空回收站
   const weekAgo = new Date().setDate(new Date().getDate() - 8)
   const trashFileSql = `select id, md5, fullPath, DATE_FORMAT(updatedTime, '%Y-%m-%d %H:%i:%s') updatedTime from storage where isDel = 1 and updatedTime > ?`
-  const trashFileList = await ctx.query(trashFileSql, weekAgo)
+  const trashFileList = await ctx.sql(trashFileSql, weekAgo)
   const trashFolderSql = `select id, folderName, fromPath, DATE_FORMAT(updatedTime, '%Y-%m-%d %H:%i:%s') updatedTime from trash_folder where updatedTime > ?`
-  const trashFolderList = await ctx.query(trashFolderSql, weekAgo)
+  const trashFolderList = await ctx.sql(trashFolderSql, weekAgo)
   // DB上的回收站数据
   const trashListMap = {}
   trashFileList.map(item => {
@@ -83,7 +83,7 @@ exports.restore = async ctx => {
         paramsArr.push(id)
       }
     })
-    await ctx.transactionQuery(sql, paramsArr)
+    await ctx.transactionSql(sql, paramsArr)
     ctx.r.success()
   } catch (e) {
     ctx.r.error(e)

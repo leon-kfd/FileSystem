@@ -10,7 +10,7 @@ const router = require('./router')
 const app = new Koa()
 app.keys = ['SimpleFileSystem']
 app.use(KoaSession({
-  key: '_fileSystem',
+  key: 'storage',
   maxAge: 2 * 3600 * 1000,
   renew: true
 }, app))

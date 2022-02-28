@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "a simple file system",
   "scripts": {
-    "dev": "nodemon service/main"
+    "dev": "nodemon service/main",
+    "ui": "cd ui && vite"
   },
   "repository": {
     "type": "git",
@@ -16,10 +17,22 @@
   },
   "homepage": "https://github.com/leon-kfd/FileSystem#readme",
   "dependencies": {
+    "axios": "^0.26.0",
+    "vue": "^3.2.25",
+    "vue-router": "^4.0.12"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^2.2.0",
     "koa": "^2.13.4",
     "koa-body": "^4.2.0",
     "koa-router": "^10.1.1",
     "koa-session": "^6.2.0",
-    "svg-captcha": "^1.4.0"
+    "mysql": "^2.18.1",
+    "rimraf": "^3.0.2",
+    "sass": "^1.49.9",
+    "svg-captcha": "^1.4.0",
+    "typescript": "^4.5.4",
+    "vite": "^2.8.0",
+    "vue-tsc": "^0.29.8"
   }
 }

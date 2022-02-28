@@ -3,12 +3,12 @@
 // ###
 
 const fs = require('fs')
-const { storageRootPath, storageTrashPath } = require('../../config/config')
+const { storageRootPath, storageTrashPath } = require('../config/config')
 const { DateFormat, RandomString } = require('../utils/helper')
 
 // 获取路径下列表
 exports.getFileList = async ctx => {
-  const { currentPath = '$Root' } = ctx.query
+  const { currentPath = '$Root' } = ctx.sql
   const storageURL = currentPath.replace('$Root', storageRootPath)
   const ls = fs.readdirSync(storageURL)
   const infoList = ls.map(item => {
@@ -34,7 +34,7 @@ exports.rename = async ctx => {
   const oldRealPath = oldPath.replace('$Root', storageRootPath)
   const newRealPath = newPath.replace('$Root', storageRootPath)
   try {
-    await ctx.query(`update storage set fullPath = ? where fullPath = ?`, [newPath, oldPath])
+    await ctx.sql(`update storage set fullPath = ? where fullPath = ?`, [newPath, oldPath])
     fs.renameSync(oldRealPath, newRealPath)
     ctx.r.success()
   } catch (e) {
@@ -73,7 +73,7 @@ exports.delete = async ctx => {
             const fileNameArr = fileName.split('.')
             const prefix = fileNameArr.length > 1 ? fileNameArr.slice(0, fileNameArr.length - 1).join('.') : fileNameArr[0]
             const suffix = fileNameArr.length > 1 ? fileNameArr[fileNameArr.length - 1] : ''
-            const dbFileInfo = await ctx.query(`select * from storage where fullPath = ?`, target)
+            const dbFileInfo = await ctx.sql(`select * from storage where fullPath = ?`, target)
             if (dbFileInfo.length > 0) {
               newFileName = `${dbFileInfo[0].id}.${suffix}`
             } else {
@@ -88,9 +88,9 @@ exports.delete = async ctx => {
           if (isFolder) {
             const now = DateFormat(new Date(), 'yyyy-MM-dd HH:mm:ss')
             const id = 'D' + RandomString(8)
-            await ctx.query(`insert into trash_folder(id, folderName, fromPath, updatedTime) values(?, ?, ?, ?)`, [id, newFileName, target, now])
+            await ctx.sql(`insert into trash_folder(id, folderName, fromPath, updatedTime) values(?, ?, ?, ?)`, [id, newFileName, target, now])
           } else {
-            await ctx.query(`update storage set isDel = 1 where fullPath = ?`, target)
+            await ctx.sql(`update storage set isDel = 1 where fullPath = ?`, target)
           }
           return Promise.resolve(1)
         } catch (e) {
@@ -134,7 +134,7 @@ exports.move = async ctx => {
     }
   })
   if (sql) {
-    await ctx.transactionQuery(sql, paramsArr)
+    await ctx.transactionSql(sql, paramsArr)
   }
   ctx.r.success()
 }

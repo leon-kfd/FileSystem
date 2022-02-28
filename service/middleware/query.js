@@ -1,6 +1,6 @@
 const { query, transactionQuery } = require('../utils/async-mysql')
 module.exports = async (ctx, next) => {
-  ctx.query = query
-  ctx.transactionQuery = transactionQuery
+  ctx.sql = query
+  ctx.transactionSql = transactionQuery
   await next()
 }

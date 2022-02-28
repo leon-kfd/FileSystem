@@ -9,6 +9,7 @@ exports.captcha = async (ctx) => {
   const c = SvgCaptcha.create({
     background: '#f5f5f7'
   })
+  ctx.session.captcha = c.text.toLocaleLowerCase()
   ctx.type = 'image/svg+xml'
   ctx.body = new Buffer.from(c.data)
 }
@@ -27,7 +28,7 @@ exports.login = async (ctx) => {
   try {
     const base64Decode = new Buffer.from(password, 'base64')
     const genPwd = base64Decode.toString()
-    const result = await ctx.query(`select * from storage_user where username = ? and password = ?`, [username, genPwd])
+    const result = await ctx.sql(`select * from storage_user where username = ? and password = ?`, [username, genPwd])
     if (!result || result.length === 0) {
       ctx.r.error(312, '账号或密码错误')
       return
@@ -35,6 +36,7 @@ exports.login = async (ctx) => {
     ctx.session.user = username
     ctx.r.success()
   } catch (e) {
+    console.log(e)
     ctx.r.error(310, '登录失败')
   }
 }

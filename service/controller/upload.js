@@ -1,13 +1,13 @@
 const fs = require('fs')
-const { storageRootPath, storageChunkPath } = require('../../config/config')
+const { storageRootPath, storageChunkPath } = require('../config/config')
 const { DateFormat, RandomString, deleteFolder } = require('../utils/helper')
 
 // 分片上传预检
 exports.testUpload = async ctx => {
-  const { identifier, filename, targetPath = '$Root', totalChunks } = ctx.query
+  const { identifier, filename, targetPath = '$Root', totalChunks } = ctx.sql
   const chunkFolderURL = `${storageChunkPath}/${identifier}`
   try {
-    const checkExistResult = await ctx.query(`select * from storage where md5 = ? and isComplete = 1 and isDel = 0`, identifier)
+    const checkExistResult = await ctx.sql(`select * from storage where md5 = ? and isComplete = 1 and isDel = 0`, identifier)
     // 检查是否已经完整上传过该文件
     if (checkExistResult.length > 0) {
       const { fullPath } = checkExistResult[0]
@@ -31,7 +31,7 @@ exports.testUpload = async ctx => {
         const now = DateFormat(new Date(), 'yyyy-MM-dd HH:mm:ss')
         const id = 'F' + RandomString(8)
         const sql = `insert into storage(id, md5, fullPath, updatedTime, isComplete, isDel) values(?, ?, ?, ?, 1, 0)`
-        await ctx.query(sql, [id, identifier, targetFilePath, now])
+        await ctx.sql(sql, [id, identifier, targetFilePath, now])
       }
       ctx.r.successData(Array.from({ length: totalChunks }, (item, index) => ~~index + 1))
       return
@@ -76,7 +76,7 @@ exports.upload = async ctx => {
       }
       const now = DateFormat(new Date(), 'yyyy-MM-dd HH:mm:ss')
       const sql = `update storage set isComplete = 1, updatedTime = ? where md5 = ?`
-      await ctx.query(sql, [now, identifier])
+      await ctx.sql(sql, [now, identifier])
       ctx.r.success()
       deleteFolder(chunkFolderURL)
     } catch (e) {
@@ -99,7 +99,7 @@ exports.simpleUpload = async ctx => {
   try {
     fs.writeFileSync(targetFile, fs.readFileSync(file.path))
     const sql = `insert into storage(id, md5, fullPath, isComplete, isDel, updatedTime) values (?, ?, ?, 1, 0, ?)`
-    await ctx.query(sql, [id, fakeMd5, `${targetPath}/${fileName}`, now])
+    await ctx.sql(sql, [id, fakeMd5, `${targetPath}/${fileName}`, now])
     ctx.r.successData({ fileName })
   } catch (e) {
     ctx.r.error(309, e.toString())
