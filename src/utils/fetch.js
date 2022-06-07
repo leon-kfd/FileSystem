@@ -1,8 +1,8 @@
 import axios from 'axios'
 import { Message } from 'element-ui'
-import router from '@/router'
+import router from '../router'
 
-const baseURL = process.env.NODE_ENV === 'production' ? '/storage' : '/api/storage'
+const baseURL = import.meta.env.PROD ? '/storage' : '/api/storage'
 
 const instance = axios.create({
   baseURL,

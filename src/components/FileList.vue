@@ -113,9 +113,9 @@
 </template>
 
 <script>
-import typesMap from '@/utils/file-icon'
-import FileUploader from '@/components/FileUploader'
-import FolderTree from '@/components/FolderTree'
+import typesMap from '../utils/file-icon'
+import FileUploader from '../components/FileUploader.vue'
+import FolderTree from '../components/FolderTree.vue'
 const sizeFormatter = (size) => {
   return size < 1024 * 1024
     ? `${parseFloat((size / 1024).toFixed(1))} KB`

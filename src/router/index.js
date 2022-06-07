@@ -7,23 +7,23 @@ const routes = [
   {
     path: '/',
     name: 'Login',
-    component: () => import('@/views/login')
+    component: () => import('../views/login.vue')
   },
   {
     path: '/main',
     name: 'Home',
-    component: () => import('@/views/Home')
+    component: () => import('../views/Home.vue')
   },
   {
     path: '/trash',
     name: 'Trash',
-    component: () => import('@/views/trash')
+    component: () => import('../views/trash.vue')
   }
 ]
 
 const router = new VueRouter({
   mode: 'history',
-  base: process.env.BASE_URL,
+  base: '/cloud',
   routes
 })
 

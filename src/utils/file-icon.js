@@ -1,8 +1,11 @@
 const icons = ['folder', 'word', 'ppt', 'excel', 'pdf', 'txt', 'zip', 'psd', 'jpg', 'mp3', 'video', 'html', 'white', 'exe']
 const iconsMap = {}
 icons.map(item => {
-  iconsMap[item] = require(`@/assets/file-icon/${item}.svg`)
+  iconsMap[item] = getImageUrl(item)
 })
+function getImageUrl(name) {
+  return new URL(`../assets/file-icon/${name}.svg`, import.meta.url).href
+}
 const typesMap = {
   folder: iconsMap.folder,
   doc: iconsMap.word,

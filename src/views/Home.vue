@@ -13,7 +13,8 @@
 </template>
 
 <script>
-import FileList from '@/components/FileList'
+import FileList from '../components/FileList.vue'
+import trashImg from '../assets/trash.svg'
 export default {
   name: 'Home',
   components: {
@@ -21,7 +22,7 @@ export default {
   },
   data () {
     return {
-      trashImg: require('@/assets/trash.svg')
+      trashImg
     }
   }
 }

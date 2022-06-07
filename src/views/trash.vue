@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import typesMap from '@/utils/file-icon'
+import typesMap from '../utils/file-icon'
 export default {
   name: 'Trash',
   data () {
