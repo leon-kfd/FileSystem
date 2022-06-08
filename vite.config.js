@@ -1,9 +1,16 @@
 import { createVuePlugin } from 'vite-plugin-vue2'
+import { viteExternalsPlugin } from 'vite-plugin-externals'
 
 export default {
   base: '/cloud/',
   plugins: [
-    createVuePlugin()
+    createVuePlugin(),
+    viteExternalsPlugin({
+      vue: 'Vue',
+      'vue-router': 'VueRouter',
+      'element-ui': 'ELEMENT',
+      axios: 'axios'
+    }),
   ],
   server: {
     proxy: {
